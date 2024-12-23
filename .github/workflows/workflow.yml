@@ -1,0 +1,24 @@
+name: CI for restaurant
+
+on:
+  pull_request:
+    branches: [release, main, development]
+  push:
+    branches: [release, main, development]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: ci for app
+        working-directory: ./
+        run: |
+          npm i
+          npm run build
+          npm run format
