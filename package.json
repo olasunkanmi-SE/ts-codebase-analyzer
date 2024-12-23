@@ -1,0 +1,43 @@
+{
+  "name": "@rgxsdk/shared-kernel",
+  "version": "1.0.37",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "test:unit": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage --verbose",
+    "build": "npx tsc",
+    "start": "node dist/index.js",
+    "start:dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
+  "keywords": [],
+  "author": "Oyinlola Olasunkanmi Raymond",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.8",
+    "babel-jest": "^29.7.0",
+    "concurrently": "^8.2.2",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.4",
+    "prettier": "^3.3.2",
+    "ts-jest": "^29.2.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "joi": "^17.13.3",
+    "keytar": "^7.9.0",
+    "winston": "^3.13.0",
+    "zod": "^3.23.8"
+  }
+}

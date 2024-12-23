@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+      "outDir": "dist",
+      "target": "ESNext",
+      "module": "commonjs",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true ,
+      "forceConsistentCasingInFileNames": true,
+      "noImplicitAny": true,
+      "sourceMap": true,
+      "moduleResolution": "node",
+      "declaration": true,
+    },
+    "exclude": ["dist/**/*", "node_modules"],
+    "include": ["src"]
+  }
