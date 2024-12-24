@@ -1,9 +1,9 @@
+import { IRequestOptions } from "./../../dist/interfaces/generic.interface.d";
 import * as https from "https";
 import { ClientRequest } from "http";
 import { IHttpClient } from "./http-service.interface";
 import { ApplicationLogger } from "../logger/logger-service";
 import { HTTP_VERBS, RequestHeader } from "../core/constants";
-import { IRequestOptions } from "../interfaces";
 /**
  * A custom HTTP client implementation that provides a set of methods for sending HTTP requests.
  * This client supports GET, POST, PUT, and DELETE requests, and allows for optional request options and payload.
