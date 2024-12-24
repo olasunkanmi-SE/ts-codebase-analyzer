@@ -53,7 +53,7 @@ export interface IModuleInfo {
   functions?: IFunctionInfo[];
   interfaces?: IInterfaceInfo[];
   enums?: IEnumInfo[];
-  imports: string[];
+  dependencies: string[];
   properties?: IProperty[];
 }
 

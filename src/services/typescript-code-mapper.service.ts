@@ -11,12 +11,14 @@ import {
   IModuleInfo,
   IProperty,
   TNode,
-} from "./interfaces";
-import { handleErrorLog } from "./utils";
+} from "../interfaces";
+import { logError } from "../utils";
+import { ITypeScriptCodeMapper } from "../interfaces/ts.code.mapper.interface";
+import { Result } from "../result";
 
-export class TypeScriptCodeMapper {
-  private program: ts.Program | undefined;
-  private typeChecker: ts.TypeChecker | undefined;
+export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
+  public program: ts.Program | undefined;
+  public typeChecker: ts.TypeChecker | undefined;
 
   constructor() {
     this.initializeTypescriptProgram();
@@ -26,23 +28,27 @@ export class TypeScriptCodeMapper {
    * Initializes a TypeScript program by reading the TS configuration file and creating a new program instance.
    * This method sets up the program and type checker for further compilation and analysis.
    */
-  initializeTypescriptProgram() {
+  private initializeTypescriptProgram() {
     try {
-      const rootDir = process.cwd();
-      const tsConfigPath = path.join(rootDir, "tsconfig.json");
-      const configFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile);
-      const compilerOptions = ts.parseJsonConfigFileContent(
-        configFile.config,
-        ts.sys,
-        rootDir
-      );
+      const rootDir: string = process.cwd();
+      const tsConfigPath: string = path.join(rootDir, "tsconfig.json");
+
+      const configFile: {
+        config?: any;
+        error?: ts.Diagnostic;
+      } = ts.readConfigFile(tsConfigPath, ts.sys.readFile);
+
+      const compilerOptions: ts.ParsedCommandLine =
+        ts.parseJsonConfigFileContent(configFile.config, ts.sys, rootDir);
+
       this.program = ts.createProgram(
         compilerOptions.fileNames,
         compilerOptions.options
       );
+
       this.typeChecker = this.program.getTypeChecker();
     } catch (error: any) {
-      handleErrorLog(error, "initializeTypescriptProgram", "");
+      logError(error, "initializeTypescriptProgram", "");
       throw Error(error);
     }
   }
@@ -56,9 +62,12 @@ export class TypeScriptCodeMapper {
    * @param sourceFile The source file containing the class declaration.
    * @returns An IClassInfo object containing the name, methods, properties, interfaces, and enums of the class.
    */
-  extractClassMetaData(node: ts.ClassDeclaration, sourceFile: ts.SourceFile) {
+  extractClassMetaData(
+    node: ts.ClassDeclaration,
+    sourceFile: ts.SourceFile
+  ): Result<IClassInfo> {
     try {
-      const className = node?.name?.getText(sourceFile);
+      const className: string | undefined = node?.name?.getText(sourceFile);
       const classInfo: IClassInfo = {
         name: className,
         functions: [],
@@ -70,9 +79,9 @@ export class TypeScriptCodeMapper {
       node.members.forEach((member) => {
         this.processClassMembers(node, sourceFile, classInfo, member);
       });
-      return classInfo;
+      return Result.ok(classInfo);
     } catch (error: any) {
-      handleErrorLog(error, "extractClassInfo", { node, sourceFile });
+      logError(error, "extractClassInfo", { node, sourceFile });
       throw Error(error);
     }
   }
@@ -87,42 +96,46 @@ export class TypeScriptCodeMapper {
    * @param index The current index within the class declaration.
    * @param classInfo The object to store extracted class information.
    */
-  processClassMembers(
+  private processClassMembers(
     node: ts.ClassDeclaration | ts.Node,
     sourceFile: ts.SourceFile,
     info: IClassInfo | IModuleInfo,
     member?: ts.ClassElement
   ): void {
-    const nodeOrMember = member ? member : node;
+    const currentElement = member ? member : node;
     if (
-      ts.isMethodDeclaration(nodeOrMember) ||
-      ts.isFunctionDeclaration(nodeOrMember)
+      ts.isMethodDeclaration(currentElement) ||
+      ts.isFunctionDeclaration(currentElement)
     ) {
-      const functionInfo = this.getFunctionDetails(nodeOrMember, sourceFile);
+      const functionInfo: IFunctionInfo | null =
+        this.getFunctionDetails(currentElement, sourceFile)?.getValue() ?? null;
       if (functionInfo) {
         info?.functions?.push(functionInfo);
       }
     }
 
-    if (ts.isPropertyDeclaration(nodeOrMember)) {
+    if (ts.isPropertyDeclaration(currentElement)) {
       const propertyInfo = this.extractPropertyParameters(
-        nodeOrMember,
+        currentElement,
         sourceFile
-      );
+      ).getValue();
       if (propertyInfo) {
         info?.properties?.push(propertyInfo);
       }
     }
 
     if (ts.isInterfaceDeclaration(node)) {
-      const interfaceInfo = this.extractInterfaceInfo(node, sourceFile);
+      const interfaceInfo = this.extractInterfaceInfo(
+        node,
+        sourceFile
+      ).getValue();
       if (interfaceInfo) {
         info?.interfaces?.push(interfaceInfo);
       }
     }
 
     if (ts.isEnumDeclaration(node)) {
-      const enumInfo = this.extractEnumInfo(node, sourceFile);
+      const enumInfo = this.extractEnumInfo(node, sourceFile).getValue();
       if (enumInfo) {
         info?.enums?.push(enumInfo);
       }
@@ -143,27 +156,27 @@ export class TypeScriptCodeMapper {
   extractPropertyParameters(
     node: ts.PropertyDeclaration,
     sourceFile: ts.SourceFile
-  ): IProperty {
+  ): Result<IProperty> {
     try {
-      const propertyName = node.name.getText(sourceFile);
+      const name: string = node.name.getText(sourceFile);
       let type;
 
       if (node.type) {
-        type = this.typeChecker?.typeToString(
-          this.typeChecker.getTypeAtLocation(node.type)
-        );
+        type = this.getTypeAtLocation(node).getValue();
       } else {
-        const inferredType = this.typeChecker?.getTypeAtLocation(node);
+        const inferredType: ts.Type | undefined =
+          this.typeChecker?.getTypeAtLocation(node);
         type = inferredType
           ? this.typeChecker?.typeToString(inferredType)
           : undefined;
       }
-      return {
-        name: propertyName,
-        type: type,
+      const property = {
+        name,
+        type,
       };
+      return Result.ok(property);
     } catch (error: any) {
-      handleErrorLog(error, "extractPropertyParameters", { node, sourceFile });
+      logError(error, "extractPropertyParameters", { node, sourceFile });
       throw Error(error);
     }
   }
@@ -178,15 +191,18 @@ export class TypeScriptCodeMapper {
   extractFunctionParameters(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     sourceFile: ts.SourceFile
-  ): IProperty[] {
-    return node.parameters.map((param) => {
+  ): Result<IProperty[]> {
+    const properties = node.parameters.map((param) => {
       const name = param.name.getText(sourceFile);
-      const type = param.type ? this.getFunctionTypes(param) : undefined;
+      const type = param.type
+        ? this.getTypeAtLocation(param).getValue()
+        : undefined;
       return {
         name,
         type,
       };
     });
+    return Result.ok(properties);
   }
 
   /**
@@ -199,23 +215,27 @@ export class TypeScriptCodeMapper {
   getFunctionDetails(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     sourceFile: ts.SourceFile
-  ): IFunctionInfo | null {
+  ): Result<IFunctionInfo> | null {
     try {
       if (!node.name) {
         return null;
       }
 
-      const functionName = node.name.getText(sourceFile);
-      const functionContent = this.getPrintedNode(node, sourceFile);
-      const parameters = this.extractFunctionParameters(node, sourceFile);
-      return this.functionDetailsMapper(
-        functionName,
-        functionContent,
+      const name: string = node.name.getText(sourceFile);
+      const content: string = this.getPrintedNode(node, sourceFile);
+      const parameters: IProperty[] = this.extractFunctionParameters(
+        node,
+        sourceFile
+      ).getValue();
+      const details = this.functionDetailsMapper(
+        name,
+        content,
         parameters,
         node
       );
+      return Result.ok(details);
     } catch (error: any) {
-      handleErrorLog(error, "extractFunctionInfo", { node, sourceFile });
+      logError(error, "extractFunctionInfo", { node, sourceFile });
       throw Error(error);
     }
   }
@@ -240,7 +260,7 @@ export class TypeScriptCodeMapper {
       name,
       content,
       parameters,
-      returnType: node.type ? this.getFunctionTypes(node) : "any",
+      returnType: node.type ? this.getTypeAtLocation(node).getValue() : "any",
       comments: this.getComment(node),
     };
   }
@@ -251,15 +271,18 @@ export class TypeScriptCodeMapper {
    * @param node A function or method declaration node.
    * @returns A string representation of the function or method type, or undefined if type checking is unavailable.
    */
-  getFunctionTypes(
+  getTypeAtLocation(
     node:
       | ts.FunctionDeclaration
       | ts.MethodDeclaration
       | ts.ParameterDeclaration
-  ) {
-    return this.typeChecker?.typeToString(
+      | ts.PropertyDeclaration
+      | ts.PropertySignature
+  ): Result<string | undefined> {
+    const type = this.typeChecker?.typeToString(
       this.typeChecker.getTypeAtLocation(node)
     );
+    return Result.ok(type);
   }
 
   /**
@@ -288,7 +311,7 @@ export class TypeScriptCodeMapper {
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     sourceFile: ts.SourceFile
   ) {
-    const printer = ts.createPrinter({
+    const printer: ts.Printer = ts.createPrinter({
       newLine: ts.NewLineKind.LineFeed,
       removeComments: true,
     });
@@ -340,7 +363,7 @@ export class TypeScriptCodeMapper {
       functions: [],
       interfaces: [],
       enums: [],
-      imports: this.extractImports(sourceFile),
+      dependencies: this.buildDependencyGraph(sourceFile),
     };
   }
 
@@ -348,13 +371,13 @@ export class TypeScriptCodeMapper {
    * Builds a hierarchical map of the codebase by traversing TypeScript files
    * and extracting module and class information.
    */
-  async buildCodebaseMap(): Promise<ICodebaseMap> {
-    const rootDir = process.cwd();
+  async buildCodebaseMap(): Promise<Result<ICodebaseMap>> {
+    const rootDir: string = process.cwd();
     const codebaseMap: ICodebaseMap = {};
-    const repoNames = path.basename(rootDir);
+    const repoNames: string = path.basename(rootDir);
     codebaseMap[repoNames] = { modules: {} };
 
-    const tsFiles = await this.getTsFiles();
+    const tsFiles: string[] = await this.getTsFiles();
     tsFiles.forEach((filePath) => {
       const moduleRalativePath = path.relative(rootDir, filePath);
       const sourceFile = this.program?.getSourceFile(filePath);
@@ -369,7 +392,10 @@ export class TypeScriptCodeMapper {
       );
       ts.forEachChild(sourceFile, (node) => {
         if (ts.isClassDeclaration(node)) {
-          const classInfo = this.extractClassMetaData(node, sourceFile);
+          const classInfo = this.extractClassMetaData(
+            node,
+            sourceFile
+          ).getValue();
           if (classInfo) {
             moduleInfo?.classes?.push(classInfo);
           }
@@ -378,33 +404,33 @@ export class TypeScriptCodeMapper {
         codebaseMap[repoNames].modules[moduleRalativePath] = moduleInfo;
       });
     });
-    return codebaseMap;
+    return Result.ok(codebaseMap);
   }
 
   extractInterfaceInfo(
     node: ts.InterfaceDeclaration,
     sourceFile: ts.SourceFile
-  ): IInterfaceInfo {
+  ): Result<IInterfaceInfo> {
     try {
-      const interfaceName = node.name.getText(sourceFile);
-      const properties = node.members
+      const interfaceName: string = node.name.getText(sourceFile);
+
+      const properties: IProperty[] = node.members
         .filter(ts.isPropertySignature)
         .map((prop) => {
           const name = prop.name.getText(sourceFile);
           const type = prop.type
-            ? this.typeChecker?.typeToString(
-                this.typeChecker.getTypeAtLocation(prop.type)
-              )
+            ? this.getTypeAtLocation(prop).getValue()
             : "any";
           return { name, type };
         });
-      return {
+
+      return Result.ok({
         name: interfaceName,
         properties,
         summary: this.getComment(node),
-      };
+      });
     } catch (error: any) {
-      handleErrorLog(error, "extractInterfaceInfo", {
+      logError(error, "extractInterfaceInfo", {
         node,
         sourceFile,
       });
@@ -415,7 +441,7 @@ export class TypeScriptCodeMapper {
   extractEnumInfo(
     node: ts.EnumDeclaration,
     sourceFile: ts.SourceFile
-  ): IEnumInfo {
+  ): Result<IEnumInfo> {
     const enumName = node.name.getText(sourceFile);
     const members = node.members.map((member) => {
       const name = member.name.getText(sourceFile);
@@ -425,14 +451,14 @@ export class TypeScriptCodeMapper {
       return { name, value };
     });
 
-    return {
+    return Result.ok({
       name: enumName,
       members: members,
       summary: this.getComment(node),
-    };
+    });
   }
 
-  extractImports(sourceFile: ts.SourceFile): string[] {
+  buildDependencyGraph(sourceFile: ts.SourceFile): string[] {
     const imports = sourceFile.statements.filter(ts.isImportDeclaration);
     return imports.map((i) => {
       return ts

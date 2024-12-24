@@ -1,7 +1,8 @@
-
 import { ApplicationLogger } from "../logger";
 
-
+export const getLogger = (): ApplicationLogger => {
+  return new ApplicationLogger();
+};
 
 /**
  * Logs an error message with the provided context using the ApplicationLogger.
@@ -9,16 +10,12 @@ import { ApplicationLogger } from "../logger";
  * @param {string} methodName - The name of the method that encountered the error.
  * @param {any} props - Additional properties to include in the log context.
  */
-export const handleErrorLog = (
-  error: any,
-  methodName: string,
-  props: any
-): void => {
-  const logger: ApplicationLogger = new ApplicationLogger();
+export const logError = (error: any, methodName: string, props: any): void => {
+  const logger = getLogger();
   const context = {
     method: methodName,
     props: JSON.stringify(props),
+    errorStack: error instanceof Error ? error.stack : undefined,
   };
-  const message = error.message;
-  logger.error(context, message, error);
+  logger.error(context, error.message, error);
 };
