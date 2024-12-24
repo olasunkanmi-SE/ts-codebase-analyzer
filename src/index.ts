@@ -7,5 +7,6 @@ export * from "./result";
 export * from "./interfaces";
 export * from "./utils";
 export * from "./core";
+export * from "./services";
 
 getCodeBase();
