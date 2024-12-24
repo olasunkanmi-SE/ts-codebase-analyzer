@@ -28,3 +28,6 @@ const classInfo = codeMapper.extractClassMetaData(classNode, sourceFile);
 // Build a dependency graph
 const dependencies = codeMapper.buildDependencyGraph(sourceFile);
 ```
+<img width="728" alt="Screenshot 2024-12-25 at 12 14 54 AM" src="https://github.com/user-attachments/assets/594286a8-0a7f-4d46-92bd-729a278ce17e" />
+
+
