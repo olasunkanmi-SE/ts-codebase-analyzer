@@ -16,7 +16,6 @@ Key features include:
 To analyze a TypeScript codebase:
 
 ```typescript
-import { TypeScriptCodeMapper } from "./src/services/typescript-code-mapper.service";
 
 const codeMapper = new TypeScriptCodeMapper();
 
