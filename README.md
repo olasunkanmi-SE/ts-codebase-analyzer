@@ -11,27 +11,6 @@ Key features include:
 - Interface and enum information extraction
 - Dependency graph generation for TypeScript files
 
-## Repository Structure
-
-```
-.
-├── src/
-│   ├── core/
-│   ├── Example/
-│   ├── http/
-│   ├── infrastructure/
-│   ├── interfaces/
-│   ├── logger/
-│   ├── result/
-│   ├── services/
-│   └── utils/
-├── CHANGELOG.md
-├── jest.config.js
-├── package.json
-├── README.md
-└── tsconfig.json
-```
-
 ### Code Analysis
 
 To analyze a TypeScript codebase:
