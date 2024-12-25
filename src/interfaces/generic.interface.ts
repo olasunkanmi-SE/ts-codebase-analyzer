@@ -69,7 +69,24 @@ export type TNode =
   | ts.FunctionDeclaration
   | ts.MethodDeclaration
   | ts.InterfaceDeclaration
-  | ts.EnumDeclaration;
+  | ts.EnumDeclaration
+  | ts.ArrowFunction;
+
+export type DeclarationOrFunctionNode =
+  | ts.FunctionDeclaration
+  | ts.MethodDeclaration
+  | ts.ParameterDeclaration
+  | ts.PropertyDeclaration
+  | ts.PropertySignature
+  | ts.ArrowFunction;
+
+export type DeclarationFunctionNode =
+  | ts.FunctionDeclaration
+  | ts.MethodDeclaration
+  | ts.ArrowFunction
+  | (ts.ClassElement & ts.FunctionDeclaration)
+  | (ts.ClassElement & ts.ArrowFunction)
+  | (ts.ClassElement & ts.MethodDeclaration);
 
 export interface IProperty {
   name: string;

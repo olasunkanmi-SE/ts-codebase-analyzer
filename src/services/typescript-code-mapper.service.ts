@@ -3,6 +3,8 @@ import { glob } from "glob";
 import * as path from "path";
 import * as ts from "typescript";
 import {
+  DeclarationFunctionNode,
+  DeclarationOrFunctionNode,
   IClassInfo,
   ICodebaseMap,
   IEnumInfo,
@@ -17,8 +19,8 @@ import { ITypeScriptCodeMapper } from "../interfaces/ts.code.mapper.interface";
 import { Result } from "../result";
 
 export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
-  public program: ts.Program | undefined;
-  public typeChecker: ts.TypeChecker | undefined;
+  private program: ts.Program | undefined;
+  private typeChecker: ts.TypeChecker | undefined;
 
   constructor() {
     this.initializeTypescriptProgram();
@@ -28,7 +30,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * Initializes a TypeScript program by reading the TS configuration file and creating a new program instance.
    * This method sets up the program and type checker for further compilation and analysis.
    */
-  private initializeTypescriptProgram() {
+  private initializeTypescriptProgram(): void {
     try {
       const rootDir: string = process.cwd();
       const tsConfigPath: string = path.join(rootDir, "tsconfig.json");
@@ -46,7 +48,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
         compilerOptions.options
       );
 
-      this.typeChecker = this.program.getTypeChecker();
+      this.typeChecker = this.getTypeChecker();
     } catch (error: any) {
       logError(error, "initializeTypescriptProgram", "");
       throw Error(error);
@@ -86,6 +88,56 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     }
   }
 
+  private aggregateFunctions(
+    node: DeclarationFunctionNode,
+    sourceFile: ts.SourceFile,
+    info: IClassInfo | IModuleInfo
+  ): void {
+    const functionInfo: IFunctionInfo | null =
+      this.getFunctionDetails(node, sourceFile)?.getValue() ?? null;
+    if (functionInfo) {
+      info?.functions?.push(functionInfo);
+    }
+  }
+
+  private aggergateProperties(
+    node: ts.PropertyDeclaration,
+    sourceFile: ts.SourceFile,
+    info: IClassInfo | IModuleInfo
+  ) {
+    const propertyInfo = this.extractPropertyParameters(
+      node,
+      sourceFile
+    ).getValue();
+    if (propertyInfo) {
+      info?.properties?.push(propertyInfo);
+    }
+  }
+
+  private aggregateInterfaces(
+    node: ts.InterfaceDeclaration,
+    sourceFile: ts.SourceFile,
+    info: IClassInfo | IModuleInfo
+  ) {
+    const interfaceInfo = this.extractInterfaceInfo(
+      node,
+      sourceFile
+    ).getValue();
+    if (interfaceInfo) {
+      info?.interfaces?.push(interfaceInfo);
+    }
+  }
+
+  private aggregateEnums(
+    node: ts.EnumDeclaration,
+    sourceFile: ts.SourceFile,
+    info: IClassInfo | IModuleInfo
+  ) {
+    const enumInfo = this.extractEnumInfo(node, sourceFile).getValue();
+    if (enumInfo) {
+      info?.enums?.push(enumInfo);
+    }
+  }
   /**
    * Retrieves and processes child elements of a class declaration, extracting
    * relevant information about methods, properties, interfaces, and enums.
@@ -97,7 +149,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * @param classInfo The object to store extracted class information.
    */
   private processClassMembers(
-    node: ts.ClassDeclaration | ts.Node,
+    node: ts.ClassDeclaration,
     sourceFile: ts.SourceFile,
     info: IClassInfo | IModuleInfo,
     member?: ts.ClassElement
@@ -105,40 +157,22 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     const currentElement = member ? member : node;
     if (
       ts.isMethodDeclaration(currentElement) ||
-      ts.isFunctionDeclaration(currentElement)
+      ts.isFunctionDeclaration(currentElement) ||
+      ts.isArrowFunction(currentElement)
     ) {
-      const functionInfo: IFunctionInfo | null =
-        this.getFunctionDetails(currentElement, sourceFile)?.getValue() ?? null;
-      if (functionInfo) {
-        info?.functions?.push(functionInfo);
-      }
+      this.aggregateFunctions(currentElement, sourceFile, info);
     }
 
     if (ts.isPropertyDeclaration(currentElement)) {
-      const propertyInfo = this.extractPropertyParameters(
-        currentElement,
-        sourceFile
-      ).getValue();
-      if (propertyInfo) {
-        info?.properties?.push(propertyInfo);
-      }
+      this.aggergateProperties(currentElement, sourceFile, info);
     }
 
     if (ts.isInterfaceDeclaration(node)) {
-      const interfaceInfo = this.extractInterfaceInfo(
-        node,
-        sourceFile
-      ).getValue();
-      if (interfaceInfo) {
-        info?.interfaces?.push(interfaceInfo);
-      }
+      this.aggregateInterfaces(node, sourceFile, info);
     }
 
     if (ts.isEnumDeclaration(node)) {
-      const enumInfo = this.extractEnumInfo(node, sourceFile).getValue();
-      if (enumInfo) {
-        info?.enums?.push(enumInfo);
-      }
+      this.aggregateEnums(node, sourceFile, info);
     }
   }
 
@@ -189,7 +223,24 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * @returns An array of function parameter objects.
    */
   extractFunctionParameters(
-    node: ts.FunctionDeclaration | ts.MethodDeclaration,
+    node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
+    sourceFile: ts.SourceFile
+  ): Result<IProperty[]> {
+    const properties = node.parameters.map((param) => {
+      const name = param.name.getText(sourceFile);
+      const type = param.type
+        ? this.getTypeAtLocation(param).getValue()
+        : undefined;
+      return {
+        name,
+        type,
+      };
+    });
+    return Result.ok(properties);
+  }
+
+  extractArrowFunctionParameters(
+    node: ts.ArrowFunction,
     sourceFile: ts.SourceFile
   ): Result<IProperty[]> {
     const properties = node.parameters.map((param) => {
@@ -213,7 +264,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * @returns An object containing function details, or null if the node has no name.
    */
   getFunctionDetails(
-    node: ts.FunctionDeclaration | ts.MethodDeclaration,
+    node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
     sourceFile: ts.SourceFile
   ): Result<IFunctionInfo> | null {
     try {
@@ -222,11 +273,12 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
       }
 
       const name: string = node.name.getText(sourceFile);
-      const content: string = this.getPrintedNode(node, sourceFile);
+      const content: string = this.getFunctionNodeText(node, sourceFile);
       const parameters: IProperty[] = this.extractFunctionParameters(
         node,
         sourceFile
       ).getValue();
+
       const details = this.functionDetailsMapper(
         name,
         content,
@@ -254,7 +306,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     name: string,
     content: string,
     parameters: IProperty[],
-    node: ts.FunctionDeclaration | ts.MethodDeclaration
+    node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction
   ) {
     return {
       name,
@@ -272,12 +324,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * @returns A string representation of the function or method type, or undefined if type checking is unavailable.
    */
   getTypeAtLocation(
-    node:
-      | ts.FunctionDeclaration
-      | ts.MethodDeclaration
-      | ts.ParameterDeclaration
-      | ts.PropertyDeclaration
-      | ts.PropertySignature
+    node: DeclarationOrFunctionNode
   ): Result<string | undefined> {
     const type = this.typeChecker?.typeToString(
       this.typeChecker.getTypeAtLocation(node)
@@ -307,8 +354,8 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
    * @param sourceFile The source file that contains the node to be printed.
    * @returns A string representation of the given node.
    */
-  getPrintedNode(
-    node: ts.FunctionDeclaration | ts.MethodDeclaration,
+  getFunctionNodeText(
+    node: ts.FunctionDeclaration | ts.MethodDeclaration | ts.ArrowFunction,
     sourceFile: ts.SourceFile
   ) {
     const printer: ts.Printer = ts.createPrinter({
@@ -368,6 +415,51 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
   }
 
   /**
+   * Retrieves a source file from the TypeScript program by its filename.
+   *
+   * @param fileName - The path to the source file to retrieve
+   * @returns The SourceFile object if found, undefined otherwise
+   */
+  getSourceFile(fileName: string): ts.SourceFile | undefined {
+    return this.program?.getSourceFile(fileName);
+  }
+
+  /**
+   * Gets an array of all root file names in the TypeScript program.
+   * Root files are the entry points specified in the tsconfig.json or passed to the compiler.
+   *
+   * @returns A readonly array of file paths, or undefined if the program is not initialized
+   */
+  getRootFileNames(): readonly string[] | undefined {
+    return this.program?.getRootFileNames();
+  }
+
+  /**
+   * Returns the current TypeScript program instance.
+   * The program object represents the entire TypeScript project and provides
+   * access to the compiler's internal state.
+   *
+   * @returns The TypeScript Program object, or undefined if not initialized
+   */
+  getProgram(): ts.Program | undefined {
+    return this.program;
+  }
+
+  /**
+   * Retrieves the TypeChecker instance from the current program.
+   * The TypeChecker is responsible for type analysis and provides
+   * APIs for querying type information.
+   *
+   * @returns The TypeScript TypeChecker object, or undefined if the program is not initialized
+   * @remarks This method creates a new type checker instance each time it's called,
+   *          consider caching the result if multiple calls are needed
+   */
+  getTypeChecker(): ts.TypeChecker | undefined {
+    const program = this.getProgram();
+    return program ? program.getTypeChecker() : undefined;
+  }
+
+  /**
    * Builds a hierarchical map of the codebase by traversing TypeScript files
    * and extracting module and class information.
    */
@@ -380,7 +472,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     const tsFiles: string[] = await this.getTsFiles();
     tsFiles.forEach((filePath) => {
       const moduleRalativePath = path.relative(rootDir, filePath);
-      const sourceFile = this.program?.getSourceFile(filePath);
+      const sourceFile = this.getSourceFile(filePath);
 
       if (!sourceFile) {
         throw Error(`No source file found for ${filePath}`);
@@ -399,8 +491,28 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
           if (classInfo) {
             moduleInfo?.classes?.push(classInfo);
           }
+          this.processClassMembers(node, sourceFile, moduleInfo);
         }
-        this.processClassMembers(node, sourceFile, moduleInfo);
+
+        if (
+          ts.isMethodDeclaration(node) ||
+          ts.isFunctionDeclaration(node) ||
+          (ts.isVariableDeclaration(node) && ts.isArrowFunction(node))
+        ) {
+          this.aggregateFunctions(node, sourceFile, moduleInfo);
+        }
+
+        if (ts.isPropertyDeclaration(node)) {
+          this.aggergateProperties(node, sourceFile, moduleInfo);
+        }
+
+        if (ts.isInterfaceDeclaration(node)) {
+          this.aggregateInterfaces(node, sourceFile, moduleInfo);
+        }
+
+        if (ts.isEnumDeclaration(node)) {
+          this.aggregateEnums(node, sourceFile, moduleInfo);
+        }
         codebaseMap[repoNames].modules[moduleRalativePath] = moduleInfo;
       });
     });

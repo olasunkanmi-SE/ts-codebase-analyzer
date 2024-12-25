@@ -91,7 +91,7 @@ export interface ITypeScriptCodeMapper {
    * @param sourceFile The source file that contains the node to be printed.
    * @returns A string representation of the given node.
    */
-  getPrintedNode(
+  getFunctionNodeText(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
     sourceFile: ts.SourceFile
   ): string;
