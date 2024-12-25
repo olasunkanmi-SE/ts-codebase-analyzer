@@ -29,5 +29,36 @@ const classInfo = codeMapper.extractClassMetaData(classNode, sourceFile);
 const dependencies = codeMapper.buildDependencyGraph(sourceFile);
 ```
 
+### Response Structure
+```
+{
+  "MyProject": {
+    "modules": {
+      "src/utils/logger.ts": {
+        "classes": [
+          {
+            "name": "Logger",
+            "functions": [
+              {
+                "name": "log",
+                "parameters": [{ "name": "message", "type": "string" }],
+                "returnType": "void",
+                "content": "",
+                "comment": "Logs application Error"
+              }
+            ],
+            "properties": [
+              { "name": "logLevel", "type": "LogLevel" }
+            ]
+          }
+        ],
+        "interfaces": [],
+        "enums": [],
+        "dependencies": ["import { LogLevel } from './types';"]
+      }
+    }
+  }
+}
 
+```
 
