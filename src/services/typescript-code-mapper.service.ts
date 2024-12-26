@@ -100,6 +100,11 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     }
   }
 
+  /**
+   * Extracts property information from a TypeScript property declaration and adds it
+   * to the class or module information object if valid. This aggregation helps build
+   * a complete representation of the class/module structure.
+   */
   private aggergateProperties(
     node: ts.PropertyDeclaration,
     sourceFile: ts.SourceFile,
@@ -114,6 +119,11 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     }
   }
 
+  /**
+   * Processes interface declarations and aggregates them into the parent class or module
+   * information object. Essential for maintaining the hierarchical structure of interfaces
+   * within their containing scope.
+   */
   private aggregateInterfaces(
     node: ts.InterfaceDeclaration,
     sourceFile: ts.SourceFile,
@@ -128,6 +138,11 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
     }
   }
 
+  /**
+   * Extracts and aggregates enum information from enum declarations into the parent
+   * class or module information object. Helps maintain a complete type system
+   * representation within the code structure.
+   */
   private aggregateEnums(
     node: ts.EnumDeclaration,
     sourceFile: ts.SourceFile,
@@ -138,6 +153,7 @@ export class TypeScriptCodeMapper implements ITypeScriptCodeMapper {
       info?.enums?.push(enumInfo);
     }
   }
+
   /**
    * Retrieves and processes child elements of a class declaration, extracting
    * relevant information about methods, properties, interfaces, and enums.
