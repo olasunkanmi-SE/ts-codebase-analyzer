@@ -61,3 +61,6 @@ const codebaseMap = await codeMapper.buildCodebaseMap();
 
 ```
 
+### Usage for Agent LLM RAG Systems
+The TypeScript Code Extractor and Analyzer can be handy for RAG (Retrieval-Augmented Generation) systems for codebases. It provides a detailed and structured representation of the codebase that can be converted into embeddings, enabling more effective advanced code analysis, retrieval, and generation tasks.
+
