@@ -28,7 +28,7 @@ const dependencies = codeMapper.buildDependencyGraph(sourceFile);
 const codebaseMap = await codeMapper.buildCodebaseMap();
 ```
 
-### Response Structure
+### Sample Response Structure
 ```
 {
   "MyProject": {
