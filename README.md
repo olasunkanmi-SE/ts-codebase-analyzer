@@ -18,15 +18,14 @@ To analyze a TypeScript codebase:
 ```typescript
 
 const codeMapper = new TypeScriptCodeMapper();
-
-// Build a codebase map
-const codebaseMap = await codeMapper.buildCodebaseMap();
-
 // Extract class metadata
 const classInfo = codeMapper.extractClassMetaData(classNode, sourceFile);
 
 // Build a dependency graph
 const dependencies = codeMapper.buildDependencyGraph(sourceFile);
+
+// Build a codebase map
+const codebaseMap = await codeMapper.buildCodebaseMap();
 ```
 
 ### Response Structure
