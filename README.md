@@ -2,7 +2,7 @@
 
 This project provides a robust toolkit for extracting, analyzing, and mapping TypeScript code structures.
 
-The TypeScript Code Extractor and Analyzer is a comprehensive solution designed to parse and analyze TypeScript codebases. It offers a set of tools to extract detailed information about classes, interfaces, functions, and other TypeScript constructs, enabling developers to gain deep insights into their codebase structure and dependencies.
+The TypeScript Code Extractor and Analyzer is a comprehensive solution designed to parse and analyze TypeScript codebases. It traverses a TypeScript codebase and extracts structured metadata about its components. It provides a hierarchical representation of the codebase, including modules, classes, functions, interfaces, properties, and enums.
 
 Key features include:
 
