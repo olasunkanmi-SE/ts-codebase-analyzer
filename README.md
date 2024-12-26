@@ -11,6 +11,11 @@ Key features include:
 - Interface and enum information extraction
 - Dependency graph generation for TypeScript files
 
+### Installation
+```
+npm i @traversets/code-extractor
+```
+
 ### Code Analysis
 
 To analyze a TypeScript codebase:
