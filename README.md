@@ -1,24 +1,25 @@
 # TypeScript Code Extractor and Analyzer
 
-This project provides a robust toolkit for extracting, analyzing, and mapping TypeScript code structures.
+This project provides an advanced toolkit for parsing TypeScript code using the TypeScript Abstract Syntax Tree (AST) to extract, analyze, and map code structures.
 
-The TypeScript Code Extractor and Analyzer is a comprehensive solution designed to parse and analyze TypeScript codebases. It traverses a TypeScript codebase and extracts structured metadata about its components. It provides a hierarchical representation of the codebase, including modules, classes, functions, interfaces, properties, and enums.
+TypeScript Code Extractor and Analyzer is a robust system that utilizes a TypeScript parser to navigate through the codebase's AST, extracting structured metadata about various components such as modules, classes, functions, interfaces, properties, and enums.
 
-Key features include:
+Key features:
 
-- Extraction of class metadata, including methods, properties, interfaces, and enums
-- Function and method analysis, including parameter extraction and return type inference
-- Interface and enum information extraction
-- Dependency graph generation for TypeScript files
+- AST-based Class Metadata Extraction: Utilizes TypeScript's AST to gather comprehensive metadata on class methods, properties, interfaces, and enums.
+- Function and Method Signature Analysis: Parses function signatures from the AST for details on parameters, return types, and inferred type information.
+- Interface and Enum Parsing: Extracts information from AST nodes representing interfaces and enums in TypeScript.
+- Dependency Graph Construction: Builds a graph of file dependencies by analyzing import declarations within the AST.
 
 ### Installation
+To integrate this tool into your project, install it via npm:
 ```
 npm i @traversets/code-extractor
 ```
 
 ### Code Analysis
 
-Here's how to perform code analysis with this tool:
+Below is an example of how to use the AST parser for code analysis:
 
 ```typescript
 
@@ -38,7 +39,7 @@ const codebaseMap = await codeMapper.buildCodebaseMap().getValue();
 ```
 
 ### Sample Response Structure
-The output provides a structured JSON representation of the codebase:
+The resulting JSON structure reflects the TypeScript AST's hierarchical representation:
 ```
 {
   "MyProject": {
@@ -73,10 +74,8 @@ The output provides a structured JSON representation of the codebase:
 ```
 
 ### Usage for Agentic RAG Systems
-The TypeScript Code Extractor and Analyzer are particularly beneficial for Retrieval-Augmented Generation (RAG) systems focused on codebases. By providing a structured and detailed representation of the code, it facilitates:
+This tool enhances Retrieval-Augmented Generation (RAG) systems by:
 
-- Semantic Search: Convert code structures into embeddings for similarity searches.
-- Codebase Understanding: Enhance AI-driven code analysis, query resolution, or code generation tasks by leveraging the extracted metadata for better context awareness.
-
-This tool thus bridges raw TypeScript code and more intelligent, automated code-related AI functionalities.
+- Parsing the TypeScript AST into embeddings for semantic code search and similarity matching
+- Leveraging AST metadata for advanced code analysis, query resolution, or to aid in code generation, thereby improving the understanding and manipulation of TypeScript codebases within AI systems.
 
