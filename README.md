@@ -18,7 +18,7 @@ npm i @traversets/code-extractor
 
 ### Code Analysis
 
-To analyze a TypeScript codebase:
+Here's how to perform code analysis with this tool:
 
 ```typescript
 
@@ -38,6 +38,7 @@ const codebaseMap = await codeMapper.buildCodebaseMap().getValue();
 ```
 
 ### Sample Response Structure
+The output provides a structured JSON representation of the codebase:
 ```
 {
   "MyProject": {
@@ -72,5 +73,10 @@ const codebaseMap = await codeMapper.buildCodebaseMap().getValue();
 ```
 
 ### Usage for Agentic RAG Systems
-The TypeScript Code Extractor and Analyzer can be handy for RAG (Retrieval-Augmented Generation) systems for codebases. It provides a detailed and structured representation of the codebase that can be converted into embeddings, enabling more effective advanced code analysis, retrieval, and generation tasks.
+The TypeScript Code Extractor and Analyzer are particularly beneficial for Retrieval-Augmented Generation (RAG) systems focused on codebases. By providing a structured and detailed representation of the code, it facilitates:
+
+- Semantic Search: Convert code structures into embeddings for similarity searches.
+- Codebase Understanding: Enhance AI-driven code analysis, query resolution, or code generation tasks by leveraging the extracted metadata for better context awareness.
+
+This tool thus bridges raw TypeScript code and more intelligent, automated code-related AI functionalities.
 
