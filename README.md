@@ -78,4 +78,5 @@ This tool enhances Retrieval-Augmented Generation (RAG) systems by:
 
 - Parsing the TypeScript AST into embeddings for semantic code search and similarity matching
 - Leveraging AST metadata for advanced code analysis, query resolution, or to aid in code generation, thereby improving the understanding and manipulation of TypeScript codebases within AI systems.
+- Building knowledge graphs for Ai agents
 
