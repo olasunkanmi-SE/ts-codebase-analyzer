@@ -20,3 +20,4 @@ jobs:
           npm i
           npm run build
           npm run format
+          npm run test:unit
