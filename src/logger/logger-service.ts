@@ -2,7 +2,7 @@ import { createLogger, transports, format, Logger } from "winston";
 import { IContextAwareLogger } from "./logger-service.interface";
 
 export class ApplicationLogger implements IContextAwareLogger {
-  private logger: Logger;
+  private readonly logger: Logger;
 
   constructor() {
     this.logger = createLogger({
@@ -31,11 +31,11 @@ export class ApplicationLogger implements IContextAwareLogger {
   }
 
   error(context: any, message: string, error: Error): void {
-    this.logger.error(message, {
+    this.logger.error(JSON.stringify(error), {
       context,
       error: {
         name: error.name,
-        message: error.message,
+        message: JSON.stringify(error),
         stack: error.stack,
       },
     });

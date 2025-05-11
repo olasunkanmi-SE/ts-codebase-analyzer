@@ -47,7 +47,7 @@ describe("HttpClient", () => {
           method: "GET",
           path: "/test",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(result).toEqual(mockData);
     });
@@ -69,7 +69,7 @@ describe("HttpClient", () => {
           method: "POST",
           path: "/test",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(result).toEqual(mockData);
     });
@@ -90,7 +90,7 @@ describe("HttpClient", () => {
           method: "PUT",
           path: "/test",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(result).toEqual({ statusCode: 200 });
     });
@@ -110,7 +110,7 @@ describe("HttpClient", () => {
           method: "DELETE",
           path: "/test",
         }),
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(result).toEqual({ statusCode: 200 });
     });
@@ -124,7 +124,7 @@ describe("HttpClient", () => {
       });
 
       await expect(httpClient.get({}, { path: "/test" })).rejects.toThrow(
-        "Request failed with status code 500"
+        "Request failed with status code 500",
       );
     });
 
@@ -135,7 +135,7 @@ describe("HttpClient", () => {
       });
 
       await expect(httpClient.get({}, { path: "/test" })).rejects.toThrow(
-        "Failed to parse response data"
+        "Failed to parse response data",
       );
     });
   });

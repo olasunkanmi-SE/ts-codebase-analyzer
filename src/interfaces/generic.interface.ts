@@ -21,6 +21,7 @@ export interface IFunctionInfo {
   returnType?: string;
   comments?: string;
   summary?: string;
+  kind?: string;
 }
 
 export interface IClassInfo {
@@ -55,6 +56,7 @@ export interface IModuleInfo {
   enums?: IEnumInfo[];
   dependencies: string[];
   properties?: IProperty[];
+  errors?: string[];
 }
 
 export interface ICodebaseMap {
