@@ -7,7 +7,7 @@ export class Result<T> {
     isSuccess: boolean,
     data?: any,
     message?: string,
-    errorCode?: number
+    errorCode?: number,
   ) {
     this.data = data;
     this.isSuccess = isSuccess;
