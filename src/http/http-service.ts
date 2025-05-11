@@ -32,7 +32,7 @@ export class HttpClient implements IHttpClient {
    **/
   async post<TRequest, TResponse>(
     payload: TRequest,
-    options?: https.RequestOptions
+    options?: https.RequestOptions,
   ): Promise<TResponse> {
     return this.sendRequest<TResponse>("POST", options, payload);
   }
@@ -44,7 +44,7 @@ export class HttpClient implements IHttpClient {
   **/
   async put<TRequest, TResponse>(
     payload: TRequest,
-    options?: https.RequestOptions
+    options?: https.RequestOptions,
   ): Promise<TResponse> {
     return this.sendRequest<TResponse>("PUT", options, payload);
   }
@@ -69,7 +69,7 @@ export class HttpClient implements IHttpClient {
     method: string,
     options?: any,
     payload?: any,
-    jwtToken?: string
+    jwtToken?: string,
   ): Promise<T> {
     const defaultHeader = this.generateRequestHeader(jwtToken);
     options.header = { ...options.header, ...defaultHeader };
@@ -102,20 +102,20 @@ export class HttpClient implements IHttpClient {
               } catch (error: any) {
                 console.log(error);
                 reject(
-                  new Error(`Failed to parse response data: ${error.message}`)
+                  new Error(`Failed to parse response data: ${error.message}`),
                 );
                 throw error;
               }
             } else {
               reject(
-                new Error(`Request failed with status code ${res.statusCode}`)
+                new Error(`Request failed with status code ${res.statusCode}`),
               );
             }
           } catch (error: any) {
             this.logger.error(
               "An error occurred during the API request.",
               JSON.stringify(error),
-              error
+              error,
             );
             throw error;
           }
@@ -125,7 +125,7 @@ export class HttpClient implements IHttpClient {
         this.logger.error(
           "An error occurred during the API request.",
           JSON.stringify(error),
-          error
+          error,
         );
         reject(error);
         throw error;
@@ -153,7 +153,7 @@ export class HttpClient implements IHttpClient {
     method: string,
     path: string,
     baseUrl: string,
-    jwtToken?: string
+    jwtToken?: string,
   ): IRequestOptions {
     const headers = this.generateRequestHeader(jwtToken);
     const options: IRequestOptions = {
@@ -178,26 +178,26 @@ export class HttpClient implements IHttpClient {
     path: string,
     baseUrl: string,
     data: any,
-    jwtToken?: string
+    jwtToken?: string,
   ): Promise<T | undefined> {
     try {
       const requestOptions: IRequestOptions = this.generateRequestOptions(
         method,
         path,
         baseUrl,
-        jwtToken
+        jwtToken,
       );
       let response: T | undefined;
       switch (method) {
         case HTTP_VERBS.GET:
           response = await this.get(
             Buffer.from(JSON.stringify({})),
-            requestOptions
+            requestOptions,
           );
         case HTTP_VERBS.POST:
           response = await this.post(
             Buffer.from(JSON.stringify(data)),
-            requestOptions
+            requestOptions,
           );
           break;
         default:
@@ -211,7 +211,7 @@ export class HttpClient implements IHttpClient {
       this.logger.error(
         "An error occurred during the API request.",
         JSON.stringify(error),
-        error
+        error,
       );
       throw error;
     }

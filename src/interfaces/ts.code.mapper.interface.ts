@@ -20,7 +20,7 @@ export interface ITypeScriptCodeMapper {
    */
   extractClassMetaData(
     node: ts.ClassDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IClassInfo>;
 
   /**
@@ -32,7 +32,7 @@ export interface ITypeScriptCodeMapper {
    */
   extractPropertyParameters(
     node: ts.PropertyDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IProperty>;
 
   /**
@@ -44,7 +44,7 @@ export interface ITypeScriptCodeMapper {
    */
   extractFunctionParameters(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IProperty[]>;
 
   /**
@@ -56,7 +56,7 @@ export interface ITypeScriptCodeMapper {
    */
   getFunctionDetails(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IFunctionInfo> | null;
 
   /**
@@ -71,7 +71,7 @@ export interface ITypeScriptCodeMapper {
       | ts.MethodDeclaration
       | ts.ParameterDeclaration
       | ts.PropertyDeclaration
-      | ts.PropertySignature
+      | ts.PropertySignature,
   ): Result<string | undefined>;
 
   /**
@@ -93,7 +93,7 @@ export interface ITypeScriptCodeMapper {
    */
   getFunctionNodeText(
     node: ts.FunctionDeclaration | ts.MethodDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): string;
 
   /**
@@ -126,7 +126,7 @@ export interface ITypeScriptCodeMapper {
    */
   extractInterfaceInfo(
     node: ts.InterfaceDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IInterfaceInfo>;
 
   /**
@@ -138,7 +138,7 @@ export interface ITypeScriptCodeMapper {
    */
   extractEnumInfo(
     node: ts.EnumDeclaration,
-    sourceFile: ts.SourceFile
+    sourceFile: ts.SourceFile,
   ): Result<IEnumInfo>;
 
   /**
