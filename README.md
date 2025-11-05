@@ -57,12 +57,16 @@ To begin analyzing your codebase, create an instance of `TypeScriptCodeMapper` a
 import { TypeScriptCodeMapper } from '@traversets/code-extractor';
 
 async function analyzeCodebase() {
-  const codeMapper = new TypeScriptCodeMapper();
-  const result = await codeMapper.buildCodebaseMap();
-  if (result.isSuccess) {
-    console.log(JSON.stringify(result.getValue(), null, 2));
-  } else {
-    console.error('Error:', result.message);
+  try {
+    const codeMapper = new TypeScriptCodeMapper();
+    const result = await codeMapper.buildCodebaseMap();
+    if (result.isSuccess) {
+      console.log(JSON.stringify(result.getValue(), null, 2));
+    } else {
+      console.error("Error:", result.message);
+    }
+  } catch (error: any) {
+    throw error;
   }
 }
 
